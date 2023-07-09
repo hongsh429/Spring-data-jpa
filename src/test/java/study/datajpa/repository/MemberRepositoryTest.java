@@ -162,4 +162,28 @@ class MemberRepositoryTest {
         }
     }
 
+    @Test
+    public void returnTypeTest() throws Exception {
+        // given
+        Team teamA = new Team("teamA");
+        teamRepository.save(teamA);
+
+        Member member1 = new Member("AAA", 10, teamA);
+        Member member2 = new Member("BBB", 20, teamA);
+
+        memberRepository.save(member1);
+        memberRepository.save(member2);
+
+
+        // 아래의 3개에 대해서 그냥 간단하게 Optional로 해라! 그게 최고임
+        List<Member> aaa = memberRepository.findListByUsername("AAA");
+        System.out.println("aaa.get(0) = " + aaa.get(0));
+
+        Member member = memberRepository.findMemberByUsername("AAA");
+        System.out.println("member = " + member);
+
+        Member member3 = memberRepository.findOptionalByUsername("AAA").get();
+        System.out.println("member3 = " + member3);
+    }
+
 }
