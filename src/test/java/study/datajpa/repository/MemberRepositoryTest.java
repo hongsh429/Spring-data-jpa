@@ -1,5 +1,7 @@
 package study.datajpa.repository;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -28,6 +30,8 @@ class MemberRepositoryTest {
     MemberRepository memberRepository;
     @Autowired
     TeamRepository teamRepository;
+    @PersistenceContext
+    EntityManager em;
 
 
     @Test
@@ -304,6 +308,154 @@ class MemberRepositoryTest {
             System.out.println("member = " + member);
         }
 
+    }
+
+    @Test
+    public void bulkUpdate() throws Exception {
+        // given
+        memberRepository.save(new Member("member1", 10));
+        memberRepository.save(new Member("member2", 19));
+        memberRepository.save(new Member("member3", 20));
+        memberRepository.save(new Member("member4", 40));
+        memberRepository.save(new Member("member5", 30));
+
+        // when
+        int resultCount = memberRepository.bulkAgePlus(20);
+        List<Member> result = memberRepository.findByUsername("member5");
+        Member member = result.get(0);
+//        em.clear(); // Spring data JPA는 이걸 해주는 기능이 있다. @Modifying(clearAutomatically = true)
+
+        System.out.println("member.getAge() = " + member.getAge()); // 이전 나이 그대로.. 그래서 바로 flush 해줘야 한다.
+        List<Member> result2 = memberRepository.findByUsername("member5");
+        Member member2 = result2.get(0);
+        System.out.println("member.getAge() = " + member2.getAge()); // 이전 나이 그대로.. 그래서 바로 flush 해줘야 한다.
+
+        // then
+        assertThat(resultCount).isEqualTo(3);
+    }
+
+    @Test
+    public void findMemberLazy() throws Exception {
+        // given
+        //member1 -> team1
+        //member2 -> team2
+        Team teamA = new Team("teamA");
+        Team teamB = new Team("teamB");
+        teamRepository.save(teamA);
+        teamRepository.save(teamB);
+        memberRepository.save(new Member("member1", 10, teamA));
+        memberRepository.save(new Member("member2", 10, teamB));
+
+        em.flush();
+        em.clear();
+
+        // when
+        List<Member> members = memberRepository.findAll();
+
+        for (Member member : members) {
+            System.out.println("member.getUsername() = " + member.getUsername());
+            System.out.println("member.getTeam().getClass() = " + member.getTeam().getClass()); // class study.datajpa.entity.Team$HibernateProxy$eGwQ8bQC
+            /* 지연로딩을 위해 가짜 객체(proxy)를 집어넣는다. 그리고 필요한 때에 다시 select 를 날린다.(프록시 초기화라고 말함.) */
+            System.out.println("member.getTeam().getName() = " + member.getTeam().getName());
+            /*
+             그래서 team 을 이제야 찾으니, team query 가 2번 날라간 것이다.
+                이런 문제를 (N + 1)문제(select member 1, select team N 개...)
+
+             다시 돌렸을 때는 왜 join을 날리는가? > findAll()을 오버라이딩해서 @EntityGraph를 넣었기 때문
+             <MemberRepository 참고>
+            */
+        }
+
+        // then
+    }
+
+    @Test
+    public void findMemberFetchJoin() throws Exception {
+        // given
+        //member1 -> team1
+        //member2 -> team2
+        Team teamA = new Team("teamA");
+        Team teamB = new Team("teamB");
+        teamRepository.save(teamA);
+        teamRepository.save(teamB);
+        memberRepository.save(new Member("member1", 10, teamA));
+        memberRepository.save(new Member("member2", 10, teamB));
+
+        em.flush();
+        em.clear();
+
+        // when
+        List<Member> members = memberRepository.findMemberFetchJoin();
+        /*
+        * N + 1 문제 해결 방법!
+        *       fetch 조인 사용!
+        *       여기선 가짜 Team 객체(proxy)를 사용하지 않고 처음 한번 join문을 날린다.
+        *       fetch join이란? > 연관관계에 있는 것을 fetch join한 객체를 한방에 select 한다.
+        * */
+        for (Member member : members) {
+            System.out.println("member.getUsername() = " + member.getUsername());
+            System.out.println("member.getTeam().getClass() = " + member.getTeam().getClass());
+            System.out.println("member.getTeam().getName() = " + member.getTeam().getName());
+
+        }
+
+        // then
+    }
+
+    @Test
+    public void findEntityGraphFetchJoin() throws Exception {
+        // given
+        //member1 -> team1
+        //member2 -> team2
+        Team teamA = new Team("teamA");
+        Team teamB = new Team("teamB");
+        teamRepository.save(teamA);
+        teamRepository.save(teamB);
+        memberRepository.save(new Member("member1", 10, teamA));
+        memberRepository.save(new Member("member1", 10, teamB));
+
+        em.flush();
+        em.clear();
+
+        // when
+        List<Member> members = memberRepository.findEntityGraphByUsername("member1");
+
+        for (Member member : members) {
+            System.out.println("member.getUsername() = " + member.getUsername());
+            System.out.println("member.getTeam().getClass() = " + member.getTeam().getClass());
+            System.out.println("member.getTeam().getName() = " + member.getTeam().getName());
+
+        }
+
+        // then
+    }
+
+    @Test
+    public void findNamedEntityGraphFetchJoin() throws Exception {
+        // given
+        //member1 -> team1
+        //member2 -> team2
+        Team teamA = new Team("teamA");
+        Team teamB = new Team("teamB");
+        teamRepository.save(teamA);
+        teamRepository.save(teamB);
+        memberRepository.save(new Member("member1", 10, teamA));
+        memberRepository.save(new Member("member1", 10, teamB));
+
+        em.flush();
+        em.clear();
+
+        // when
+        List<Member> members = memberRepository.findNamedEntityGraphByUsername("member1");
+
+        for (Member member : members) {
+            System.out.println("member.getUsername() = " + member.getUsername());
+            System.out.println("member.getTeam().getClass() = " + member.getTeam().getClass());
+            System.out.println("member.getTeam().getName() = " + member.getTeam().getName());
+
+        }
+
+        // then
     }
 
 }

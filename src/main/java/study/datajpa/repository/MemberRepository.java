@@ -3,7 +3,9 @@ package study.datajpa.repository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import study.datajpa.dto.MemberDto;
@@ -69,6 +71,37 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     List<Member> findMemberByAge(int age, Pageable pageable);
 
     /* Top 3 !*/
-
     List<Member> findTop3ByAgeGreaterThanOrderByAgeDesc(int age);
+
+
+    /*bulk*/
+    @Modifying(clearAutomatically = true)      // 이게 있어야, excuteUpdate();를 실행한다.
+    @Query("update Member m set m.age = m.age + 1 where m.age >= :age")
+    int bulkAgePlus(@Param("age") int age);
+
+
+    /* fetch join */
+    @Query(value = "select m from Member m left join fetch m.team")
+    List<Member> findMemberFetchJoin();
+
+
+    /* @EntityGraph */
+    @Override
+    @EntityGraph(attributePaths = {"team"})
+    List<Member> findAll();
+
+    // JPQL과 같이 사용 가능
+    @EntityGraph(attributePaths = {"team"})
+    @Query("select m from Member m")
+    List<Member> findMemberEntityGraph();
+
+    // Query Method와도 사용가능
+    @EntityGraph(attributePaths = {"team"})
+                    /*find ~~~ By  : ~~ 사이에는 좀 아무값이나 써도 괜춘*/
+    List<Member> findEntityGraphByUsername(@Param("username") String username);
+
+
+    @EntityGraph(value = "Member.all")/*NamedEntityGraph 사용. <Member Entity 참조>*/
+    List<Member> findNamedEntityGraphByUsername(@Param("username") String username);
+
 }

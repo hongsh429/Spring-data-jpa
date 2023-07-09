@@ -13,6 +13,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
 @Transactional
+@Rollback(value = false)
 class MemberJpaRepositoryTest {
 
     @Autowired
@@ -75,6 +76,7 @@ class MemberJpaRepositoryTest {
         List<Member> result = memberJpaRepository.findByUsernameAndAgeGreaterThan("AAA", 15);
         assertThat(result.get(0)).isEqualTo(member2);
     }
+
     @Test
     public void testNamedQuery() throws Exception {
         // given
@@ -108,6 +110,23 @@ class MemberJpaRepositoryTest {
         assertThat(members.size()).isEqualTo(3); // 0 부터 3개 가지고와!
         assertThat(totalCount).isEqualTo(5);
 
+    }
+
+    @Test
+    public void bulkUpdate() throws Exception {
+        // given
+        memberJpaRepository.save(new Member("member1", 10));
+        memberJpaRepository.save(new Member("member2", 19));
+        memberJpaRepository.save(new Member("member3", 20));
+        memberJpaRepository.save(new Member("member4", 40));
+        memberJpaRepository.save(new Member("member5", 30));
+
+        // when
+        int resultCount = memberJpaRepository.bulkAgePlus(20);
+
+
+        // then
+        assertThat(resultCount).isEqualTo(2);
     }
 
 }

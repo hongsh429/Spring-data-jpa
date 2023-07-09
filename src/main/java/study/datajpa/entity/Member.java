@@ -13,6 +13,7 @@ import lombok.*;
         name = "Member.findByUsername",
         query="select m from Member m where m.username= :username"
 )
+@NamedEntityGraph(name ="Member.all", attributeNodes = @NamedAttributeNode("team")) /* NamedEntityGraph 에서 EntityGraph가 나옴*/
 public class Member {
 
     @Id
