@@ -33,6 +33,11 @@ public class Member {
         }
     }
 
+    public Member(String username, int age) {
+        this.username = username;
+        this.age = age;
+    }
+
     // == 연관관계 세팅 메서드 == // -> 이건 연관관계의 주인에게 있는 것이 맞다. 왜? 수정이 가능한 곳!
     public void changeTeam(Team team) {
         this.team = team;
