@@ -3,6 +3,10 @@ package study.datajpa.repository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 import study.datajpa.dto.MemberDto;
@@ -184,6 +188,120 @@ class MemberRepositoryTest {
 
         Member member3 = memberRepository.findOptionalByUsername("AAA").get();
         System.out.println("member3 = " + member3);
+    }
+
+    @Test
+    public void paging() throws Exception {
+        // given
+        memberRepository.save(new Member("member1", 10));
+        memberRepository.save(new Member("member2", 10));
+        memberRepository.save(new Member("member3", 10));
+        memberRepository.save(new Member("member4", 10));
+        memberRepository.save(new Member("member5", 10));
+
+        int age = 10;
+        PageRequest pageRequest = PageRequest.of(
+                0, 3, Sort.by(Sort.Direction.DESC, "username")
+        );
+
+        // when
+        Page<Member> page = memberRepository.findByAge(age, pageRequest);
+        /* 반환 타입이 page이니까 알아서 count 쿼리를 알아서 내보낸다. */
+
+        // then
+        List<Member> content = page.getContent();
+        long totalElements = page.getTotalElements();
+        for (Member member : content) {
+            System.out.println("member = " + member);
+        }
+        System.out.println("totalElements = " + totalElements);
+
+        assertThat(content.size()).isEqualTo(3);
+        assertThat(totalElements).isEqualTo(5);
+        assertThat(page.getNumber()).isEqualTo(0); // 페이지 번호
+        assertThat(page.getTotalPages()).isEqualTo(2);
+        assertThat(page.isFirst()).isTrue();
+        assertThat(page.hasNext()).isTrue();
+    }
+
+
+    @Test
+    public void paging2() throws Exception {
+        // given
+        memberRepository.save(new Member("member1", 10));
+        memberRepository.save(new Member("member2", 10));
+        memberRepository.save(new Member("member3", 10));
+        memberRepository.save(new Member("member4", 10));
+        memberRepository.save(new Member("member5", 10));
+
+        int age = 10;
+        PageRequest pageRequest = PageRequest.of(
+                0, 3, Sort.by(Sort.Direction.DESC, "username")
+        );
+
+        // when
+        Slice<Member> page = memberRepository.findAllByAge(age, pageRequest);
+        /* 반환 타입이 page이니까 알아서 count 쿼리를 알아서 내보낸다. */
+
+        // then
+        List<Member> content = page.getContent();
+//        long totalElements = page.getTotalElements();
+        for (Member member : content) {
+            System.out.println("member = " + member);
+        }
+//        System.out.println("totalElements = " + totalElements);
+
+        assertThat(content.size()).isEqualTo(3);
+//        assertThat(totalElements).isEqualTo(5);
+        assertThat(page.getNumber()).isEqualTo(0); // 페이지 번호
+//        assertThat(page.getTotalPages()).isEqualTo(2);
+        assertThat(page.isFirst()).isTrue();
+        assertThat(page.hasNext()).isTrue();
+    }
+
+    @Test
+    public void paging3() throws Exception {
+        // given
+        memberRepository.save(new Member("member1", 10));
+        memberRepository.save(new Member("member2", 10));
+        memberRepository.save(new Member("member3", 10));
+        memberRepository.save(new Member("member4", 10));
+        memberRepository.save(new Member("member5", 10));
+
+        int age = 10;
+        PageRequest pageRequest = PageRequest.of(
+                0, 3, Sort.by(Sort.Direction.DESC, "username")
+        );
+
+        // when
+        List<Member> page = memberRepository.findMemberByAge(age, pageRequest);
+
+        /*
+        여기까지 보면 pageable로 내보내면 limit offset 옵션을 주어 sql문을 날리지만,
+        반환 타입은 내가 그냥 알아서 정할 수 있다.
+
+        대개는 totalCount와 관련된 쿼리에서 성능의 차이가 난다. 만약 Member가 많은 것들과 엮여 있다면,
+        totalCount 쿼리가 매우 성능이 낮아질 수있는데, 실제로 count query는 다른 것들과의 조인이 필요없다.
+        이를 해결하는 방법도 존재.(MemberRepository 확인)
+        */
+    }
+
+    @Test
+    public void top3() throws Exception {
+        // given
+        memberRepository.save(new Member("member1", 10));
+        memberRepository.save(new Member("member1", 12));
+        memberRepository.save(new Member("member2", 20));
+        memberRepository.save(new Member("member3", 15));
+        memberRepository.save(new Member("member4", 30));
+        memberRepository.save(new Member("member5", 29));
+
+
+        List<Member> page = memberRepository.findTop3ByAgeGreaterThanOrderByAgeDesc(12);
+        for (Member member : page) {
+            System.out.println("member = " + member);
+        }
+
     }
 
 }

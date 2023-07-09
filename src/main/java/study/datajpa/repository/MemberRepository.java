@@ -1,5 +1,8 @@
 package study.datajpa.repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -48,4 +51,21 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     List<Member> findListByUsername(String username); // 컬렉션
     Member findMemberByUsername(String username); // 단건
     Optional<Member> findOptionalByUsername(String username); // 단건 Optional
+
+
+
+    /*
+    * countQuery는 조인을 할 필요가 없기 때문에! countQuery만 따로 날려줄 수도 있다.
+    * 성능 테스트를 거쳐서 이를 해결할 수 있다.
+    * */
+                                                                    /*이렇게 안하면 기본은 앞의 쿼리 처럼 join 문이 날라감.*/
+    @Query(value = "select m from Member m left join m.team t", countQuery = "select count(m.username) from Member m")
+    Page<Member> findByAge(int age, Pageable pageable);
+
+    Slice<Member> findAllByAge(int age, Pageable pageable);
+    List<Member> findMemberByAge(int age, Pageable pageable);
+
+    /* Top 3 !*/
+
+    List<Member> findTop3ByAgeGreaterThanOrderByAgeDesc(int age);
 }
