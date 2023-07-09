@@ -77,8 +77,17 @@ class MemberRepositoryTest {
         List<Member> result = memberRepository.findByUsernameAndAgeGreaterThan("AAA", 15);
         assertThat(result.get(0)).isEqualTo(member2);
 
-        // when
+    }
 
-        // then
+    @Test
+    public void testNamedQueryInSpringDataJpa() throws Exception {
+        // given
+        Member member1 = new Member("AAA", 10);
+        Member member2 = new Member("bbb", 20);
+        memberRepository.save(member1);
+        memberRepository.save(member2);
+
+        List<Member> result = memberRepository.findByUsername("AAA");
+        assertThat(result.get(0)).isEqualTo(member1);
     }
 }

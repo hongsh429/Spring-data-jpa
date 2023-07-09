@@ -5,9 +5,14 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Getter @Setter
+@Getter
+@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED) // proxy 기술을 쓸 때, 사용한다.
 @ToString(of = {"id", "username", "age"}) // toString의 내용. 여기에 team 있다면, toString 무한 루프가 돈다.
+@NamedQuery(
+        name = "Member.findByUsername",
+        query="select m from Member m where m.username= :username"
+)
 public class Member {
 
     @Id
