@@ -21,4 +21,13 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
      Named Query는 application 로딩 시점에 parsing 을 하는 과정에서 문법 오류를 찾아준다.
     */
     List<Member> findByUsername(@Param("username") String username);
+
+
+    // Repository에 JPQL을 바로 쓰는 방법
+    /*
+    *  이름이 없는 Named Query와 비슷
+    * 1. 문법오류를 로딩시점에 잡아준다.
+    * */
+    @Query("select m from Member m where m.username = :username and m.age = :age")
+    List<Member> findUser(@Param("username") String username, @Param("age") int age);
 }

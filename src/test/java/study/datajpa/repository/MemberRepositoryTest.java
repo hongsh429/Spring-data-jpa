@@ -90,4 +90,16 @@ class MemberRepositoryTest {
         List<Member> result = memberRepository.findByUsername("AAA");
         assertThat(result.get(0)).isEqualTo(member1);
     }
+
+    @Test
+    public void testFindUserQuery() throws Exception {
+        // given
+        Member member1 = new Member("AAA", 10);
+        Member member2 = new Member("bbb", 20);
+        memberRepository.save(member1);
+        memberRepository.save(member2);
+
+        List<Member> result = memberRepository.findUser("AAA", 10);
+        assertThat(result.get(0)).isEqualTo(member1);
+    }
 }
