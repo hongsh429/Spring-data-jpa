@@ -458,4 +458,60 @@ class MemberRepositoryTest {
         // then
     }
 
+    @Test
+    public void queryHint() throws Exception {
+        // given
+        Member member1 = memberRepository.save(new Member("member1", 10));
+        em.flush(); // 여기서 sql 지연 저장소에 쿼리 날라감.
+        em.clear(); // 영속성 컨텍스트를 날림
+
+        // when
+        Member findMember = memberRepository.findReadOnlyByUsername(member1.getUsername()); // get() 원래는 하면 안돼!
+        findMember.setUsername("member2");  // 이래 놓고 끝나면 commit 될 때, update 쿼리 나간다.
+         /*
+         ↑ 이럴 때, 변경감지를 위해 스넵샷(초기상태)을 저장하여 변경된 내용과 비교한다.
+            하지만, @QueryHints(value = @QueryHint(name = "org.hibernate.readOnly", value="true"))를 주면,
+            스넵샷을 비워두어 메모리 최적화를 하면서 조회를 한다.
+
+            그러나,,, 진짜 실시간 조회 트레픽이 진짜 많으면, 어쩔 수 없이 redis를 깔아야한다...
+            기승전 Redis...
+         */
+
+
+
+        // then
+    }
+
+    @Test
+    public void findLock() throws Exception {
+        // given
+        //member1 -> team1
+        //member2 -> team2
+        Team teamA = new Team("teamA");
+        Team teamB = new Team("teamB");
+        teamRepository.save(teamA);
+        teamRepository.save(teamB);
+        memberRepository.save(new Member("member1", 10, teamA));
+        memberRepository.save(new Member("member1", 10, teamB));
+
+        em.flush();
+        em.clear();
+
+        // when
+        List<Member> result = memberRepository.findLockByUsername("member1");
+//        select
+//        m1_0.member_id,
+//                m1_0.age,
+//                m1_0.team_id,
+//                m1_0.username
+//        from
+//        member m1_0
+//        where
+       /* m1_0.username=? for update */ // transaction과 Lock. 이건 좀 어렵당...ㅋ
+/*
+실시간 트레픽이 많은 서비스에서는 락은 좀 피해라.. 현재는 이해가 안되지만 ㅋㅋ
+*/
+
+    }
+
 }
