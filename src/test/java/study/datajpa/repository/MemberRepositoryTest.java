@@ -88,6 +88,8 @@ class MemberRepositoryTest {
         List<Member> result = memberRepository.findByUsernameAndAgeGreaterThan("AAA", 15);
         assertThat(result.get(0)).isEqualTo(member2);
 
+        List<Member> result2 = memberRepository.findByUserGreaterThanAge(15);
+        assertThat(result2.get(0)).isEqualTo(member2);
     }
 
     @Test
@@ -219,7 +221,7 @@ class MemberRepositoryTest {
         assertThat(content.size()).isEqualTo(3);
         assertThat(totalElements).isEqualTo(5);
         assertThat(page.getNumber()).isEqualTo(0); // 페이지 번호
-        assertThat(page.getTotalPages()).isEqualTo(2);
+        assertThat(page.getTotalPages()).isEqualTo(2); // 총페이지 갯수
         assertThat(page.isFirst()).isTrue();
         assertThat(page.hasNext()).isTrue();
     }

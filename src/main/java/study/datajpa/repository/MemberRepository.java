@@ -16,6 +16,9 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 
     List<Member> findByUsernameAndAgeGreaterThan(String username, int age);
 
+    @Query("select m from Member m where m.age > :age")
+    List<Member> findByUserGreaterThanAge(@Param("age") int age);
+
 
     // NamedQuery
 //    @Query(name = "Member.findByUsername") // 없애도 동작한다.
