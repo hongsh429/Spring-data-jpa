@@ -14,7 +14,7 @@ import lombok.*;
         query="select m from Member m where m.username= :username"
 )
 @NamedEntityGraph(name ="Member.all", attributeNodes = @NamedAttributeNode("team")) /* NamedEntityGraph 에서 EntityGraph가 나옴*/
-public class Member {
+public class Member extends BaseEntity /*JpaBaseEntity 는 순수 jpa 사용할 때 쓰는 것*/{
 
     @Id
     @GeneratedValue // 식별자 값을 디비에 알아서 넣어준다.

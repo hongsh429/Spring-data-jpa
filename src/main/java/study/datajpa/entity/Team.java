@@ -12,7 +12,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED) // proxy 기술을 쓸 때, 사용한다.
 @ToString(of = {"id", "name"})
-public class Team {
+public class Team extends JpaBaseEntity{
 
     @Id
     @GeneratedValue // 식별자 값을 디비에 알아서 넣어준다.
