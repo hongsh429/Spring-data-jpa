@@ -562,7 +562,7 @@ class MemberRepositoryTest {
 
     /* 도메인 객체를 가지고 그냥 검색조건을 가지고 만든다! */
     @Test
-    public void projections() throws Exception {
+    public void examples() throws Exception {
         //given
         Team teamA = new Team("teamA");
         em.persist(teamA);
@@ -602,5 +602,114 @@ class MemberRepositoryTest {
         //then
         Assertions.assertThat(members.size()).isEqualTo(1);
         assertThat(members.get(0).getUsername()).isEqualTo("m1");
+    }
+
+
+    /* projection */
+    @Test
+    public void projections() throws Exception {
+        //given
+        Team teamA = new Team("teamA");
+        em.persist(teamA);
+
+        Member m1 = new Member("m1", 0, teamA);
+        Member m2 = new Member("m2", 0, teamA);
+        em.persist(m1);
+        em.persist(m2);
+
+        em.flush();
+        em.clear();
+
+        // when
+        List<UsernameOnly> result = memberRepository.findProjectionByUsername("m1");
+        for (UsernameOnly usernameOnly : result) {
+            System.out.println("usernameOnly = " + usernameOnly);
+            System.out.println("usernameOnly.getUsername() = " + usernameOnly.getUsername());
+
+        }
+
+        // then
+    }
+
+    /* 순수 jpa에서 select new packagePath.~~Dto(m.username, ~) from Member m 하고 같은거네? */
+    @Test
+    public void projections2() throws Exception {
+        //given
+        Team teamA = new Team("teamA");
+        em.persist(teamA);
+
+        Member m1 = new Member("m1", 0, teamA);
+        Member m2 = new Member("m2", 0, teamA);
+        em.persist(m1);
+        em.persist(m2);
+
+        em.flush();
+        em.clear();
+
+        // when
+        List<UsernameOnlyDto> result = memberRepository.findProjection2ByUsername("m1");
+
+        for (UsernameOnlyDto usernameOnlyDto : result) {
+            System.out.println("usernameOnlyDto.getUsername() = " + usernameOnlyDto.getUsername());
+        }
+        // then
+    }
+
+    @Test
+    public void projections3() throws Exception {
+        //given
+        Team teamA = new Team("teamA");
+        em.persist(teamA);
+
+        Member m1 = new Member("m1", 0, teamA);
+        Member m2 = new Member("m2", 0, teamA);
+        em.persist(m1);
+        em.persist(m2);
+
+        em.flush();
+        em.clear();
+
+        // when
+        List<UsernameOnlyDto> result = memberRepository.findProjection3ByUsername("m1", UsernameOnlyDto.class);
+
+        for (UsernameOnlyDto usernameOnlyDto : result) {
+            System.out.println("usernameOnlyDto.getUsername() = " + usernameOnlyDto.getUsername());
+        }
+        // then
+    }
+
+    @Test
+    public void projections4() throws Exception {
+        //given
+        Team teamA = new Team("teamA");
+        em.persist(teamA);
+
+        Member m1 = new Member("m1", 0, teamA);
+        Member m2 = new Member("m2", 0, teamA);
+        em.persist(m1);
+        em.persist(m2);
+
+        em.flush();
+        em.clear();
+
+        // when
+        List<NestedClosedProjections> result = memberRepository.findProjection3ByUsername("m1", NestedClosedProjections.class);
+        /* 위가 가능한 이유는? 제네릭으로 만들었기 때문이다! */
+
+        for (NestedClosedProjections usernameOnlyDto : result) {
+            System.out.println("usernameOnlyDto.getUsername() = " + usernameOnlyDto.getUsername());
+            System.out.println("usernameOnlyDto.getTeam().getName() = " + usernameOnlyDto.getTeam().getName());
+        }
+
+        /*
+        * entity가 연관관계에 들어가서 join을 하는 순간, 프로잭트 루트에 대상 루트 엔티티면 최적화가 잘되서 원하는 값만 가지고 오지만,
+        * 대상 루트가 아니면, 최적화가 안되어 모든 정보를 가지고 오고 원하는 것을 이후에 출력한다.
+
+        * 정리
+            - 프로젝션 대상이 root 엔티티면 유용하다.
+            - 프로젝션 대상이 root 엔티티를 넘어가면 JPQL SELECT 최적화가 안된다!
+            - 실무의 복잡한 쿼리를 해결하기에는 한계가 있다.
+            - 실무에서는 단순할 때만 사용하고, 조금만 복잡해지면 QueryDSL을 사용하자
+        * */
     }
 }
