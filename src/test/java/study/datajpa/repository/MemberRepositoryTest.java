@@ -33,6 +33,10 @@ class MemberRepositoryTest {
     @PersistenceContext
     EntityManager em;
 
+    /* 내가 커스텀하게 만들기 위해 만든 것! */
+    @Autowired
+    MemberQueryRepository memberQueryRepository;
+
 
     @Test
 
@@ -512,6 +516,26 @@ class MemberRepositoryTest {
 실시간 트레픽이 많은 서비스에서는 락은 좀 피해라.. 현재는 이해가 안되지만 ㅋㅋ
 */
 
+    }
+
+    /* 사용자 정의 Repository */
+    @Test
+    public void callCustom() throws Exception {
+
+        // given
+        List<Member> result = memberRepository.findMemberCustom();
+        // when
+
+        // then
+    }
+
+    @Test
+    public void callCustomQuery() throws Exception {
+        // given
+        List<Member> queryAll = memberQueryRepository.findQueryAll();
+        // when
+
+        // then
     }
 
 }
