@@ -11,6 +11,12 @@ spring:
       hibernate:
 #        show_sql: true
         format_sql: true
+# 설정으로 페이징 처리 관련 디폴트를 바꿀수 잇다. <글로벌 설정>
+  data:
+    web:
+      pageable:
+        default-page-size: 10
+        max-page-size: 2000
 
 logging.level:
   org.hibernate.SQL: debug
