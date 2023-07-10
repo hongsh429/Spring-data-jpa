@@ -2,13 +2,11 @@ package study.datajpa.repository;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Slice;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
@@ -558,5 +556,51 @@ class MemberRepositoryTest {
 
 
         // then
+    }
+
+    /* Query by Example */
+
+    /* 도메인 객체를 가지고 그냥 검색조건을 가지고 만든다! */
+    @Test
+    public void projections() throws Exception {
+        //given
+        Team teamA = new Team("teamA");
+        em.persist(teamA);
+        Member m1 = new Member("m1", 0, teamA);
+        Member m2 = new Member("m2", 0, teamA);
+        em.persist(m1);
+        em.persist(m2);
+        em.flush();
+        em.clear();
+
+        //when
+
+        //probe 생성 : 필드에 데이터가 있는 실제 도메인 객체
+        Member member = new Member("m1");
+        Team team = new Team("teamA");
+        member.setTeam(team);
+
+        ExampleMatcher matcher = ExampleMatcher.matching()
+                .withIgnorePaths("age");
+
+//        Member member = new Member("m1");
+        Example<Member> example = Example.of(member, matcher);
+        List<Member> members = memberRepository.findAll(example);
+
+        /*
+        장점 : org.springframework.data.domain >> 여기에 있는거라, 다른 db에서 써도 좋다.
+                도메인 객체를 활용한다는 점.
+
+        단점 : 매칭조건이 = 조건만 가능.
+                매칭조건이 너무 단순.
+                다양한 join문을 활용할 수 없다.
+
+        결론
+            그래서 별로 안쓴다...
+        */
+
+        //then
+        Assertions.assertThat(members.size()).isEqualTo(1);
+        assertThat(members.get(0).getUsername()).isEqualTo("m1");
     }
 }
